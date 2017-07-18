@@ -12,6 +12,8 @@ public class GenerateObjectOnMap : MonoBehaviour {
     public UIActions _uiActions;
     public Filters _filters;
     public ScoreBoard _scoreBoard;
+    public OffscreenIndicator _offscreenIndicator;
+    public RayCast _ray;
 
     /*******************
     * public variables *
@@ -21,11 +23,12 @@ public class GenerateObjectOnMap : MonoBehaviour {
 
     public List<Cartesian> listCartesian_to_use;    
 
-    /*******************
+    /********************
     * private variables *
     ********************/
     private List<Cartesian> listCartesian;
     private List<Cartesian> tempList;
+    private bool activateOffscreenIndicator = false;
 
 
     bool pass = false;
@@ -60,8 +63,6 @@ public class GenerateObjectOnMap : MonoBehaviour {
 
         _uiActions.DisableUI_Element();
 
-        //InstantiateObjectOnMap();
-
         if (!pass)
         {
             pass = true;
@@ -74,39 +75,28 @@ public class GenerateObjectOnMap : MonoBehaviour {
         {
             _filters.Populate_DropdownList(listCartesian_to_use);
         }
-        
+
+        if (!activateOffscreenIndicator)
+        {
+            activateOffscreenIndicator = true;
+            setObjectOffscreenIndicator();
+        }
+
         InvokeRepeating("MoveAthletes", 1, 1);
 
     }
 
-    public void InstantiateObjectOnMap()
-    {
-        // first we destroy the ancient points of interest, in this case our athlete visualization on the map.
-        // point0 means the origin point (transform) for the new objects
-        if (point0.transform.childCount > 0)
-        {
-            foreach (Transform t in point0.transform)
-            {
-                Destroy(t.gameObject);
-            }
-        }
-
-        // create for each athletes is representation on the map
-        foreach (Cartesian c in listCartesian_to_use)
-        {
-            GameObject go = Instantiate(cyclistPrefab, new Vector3((float)c.x, 0, (float)c.y), Quaternion.identity, point0.transform) as GameObject;
-            go.name = c.athlete.gname;
-        }
-    }
-
     public void InstantiateObjectOnMap_Color()
     {
-        // create for each athletes is representation on the map
+        _ray.goList = new List<GameObject>();
+
+        // create for each athletes is representation on the map with different color for each of them
         foreach (Cartesian c in listCartesian_to_use)
         {
             GameObject go = Instantiate(cyclistPrefab, new Vector3((float)c.x, 0, (float)c.y), Quaternion.identity, point0.transform) as GameObject;
             go.name = c.athlete.bib + " " + c.athlete.gname;
             go.GetComponent<Renderer>().material.color = new Color(Random.value, Random.value, Random.value);
+            _ray.goList.Add(go);
         }
     }
 
@@ -124,6 +114,7 @@ public class GenerateObjectOnMap : MonoBehaviour {
 
     private void ApplyFilters()
     {
+        // do something only if we have component
         if (point0.transform.childCount > 0)
         {
             if (_filters.filterChoice.Equals("NO FILTER") || _filters.filterChoice == "")
@@ -132,8 +123,10 @@ public class GenerateObjectOnMap : MonoBehaviour {
                 return;
             }
 
+            // apply the selected filter
             foreach (Transform t in point0.transform)
             {
+                // enable all renderer for preventing bugs
                 t.gameObject.GetComponentInChildren<Renderer>().enabled = true;
 
                 if (t.gameObject.name != _filters.filterChoice)
@@ -152,6 +145,12 @@ public class GenerateObjectOnMap : MonoBehaviour {
         }
     }
 
+    private void setObjectOffscreenIndicator()
+    {
+        _offscreenIndicator.arrowCanvas.enabled = true;
+        _offscreenIndicator.enabled = true;
+        _offscreenIndicator.objects = new List<GameObject>(_ray.goList);
+    }
 
     private bool CompareList(List<Cartesian> list1, List<Cartesian> list2)
     {

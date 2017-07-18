@@ -53,7 +53,7 @@ public class InstantiateJsonObject : MonoBehaviour {
         {
 
 #if UNITY_EDITOR
-            Debug.Log("Unity editor");
+            //Debug.Log("Unity editor");
             path = fileLocation;
             if (!getNameOnce)
             {
@@ -72,7 +72,7 @@ public class InstantiateJsonObject : MonoBehaviour {
             // wait until the end of the download
             while (!wwwObject.isDone)
             {
-                Debug.Log(wwwObject.bytesDownloaded);
+                //Debug.Log(wwwObject.bytesDownloaded);
             }
 
             jsonString = wwwObject.text;
